@@ -1,0 +1,152 @@
+{
+  "android_play_store_link": "",
+  "ios_app_store_link": "",
+  "sticker_packs": [
+    {
+      "identifier": "my_stickers_1",
+      "name": "My Stickers",
+      "publisher": "Sticker Studio",
+      "tray_image_file": "tray.png",
+      "image_data_version": "1",
+      "avoid_cache": false,
+      "publisher_email": "",
+      "publisher_website": "",
+      "privacy_policy_website": "",
+      "license_agreement_website": "",
+      "stickers": [
+        {
+          "image_file": "001_happy.webp",
+          "emojis": [
+            "😀"
+          ]
+        },
+        {
+          "image_file": "002_angry.webp",
+          "emojis": [
+            "😡"
+          ]
+        },
+        {
+          "image_file": "003_crying.webp",
+          "emojis": [
+            "😭"
+          ]
+        },
+        {
+          "image_file": "004_mind_blown.webp",
+          "emojis": [
+            "🤯"
+          ]
+        },
+        {
+          "image_file": "005_facepalm.webp",
+          "emojis": [
+            "🤦"
+          ]
+        },
+        {
+          "image_file": "006_laughing.webp",
+          "emojis": [
+            "😂"
+          ]
+        },
+        {
+          "image_file": "007_shocked.webp",
+          "emojis": [
+            "😱"
+          ]
+        },
+        {
+          "image_file": "008_thinking.webp",
+          "emojis": [
+            "🤔"
+          ]
+        },
+        {
+          "image_file": "009_sleeping.webp",
+          "emojis": [
+            "😴"
+          ]
+        },
+        {
+          "image_file": "010_confused.webp",
+          "emojis": [
+            "😕"
+          ]
+        },
+        {
+          "image_file": "011_love.webp",
+          "emojis": [
+            "😍"
+          ]
+        },
+        {
+          "image_file": "012_cool.webp",
+          "emojis": [
+            "😎"
+          ]
+        },
+        {
+          "image_file": "013_embarrassed.webp",
+          "emojis": [
+            "😳"
+          ]
+        },
+        {
+          "image_file": "014_scared.webp",
+          "emojis": [
+            "😨"
+          ]
+        },
+        {
+          "image_file": "015_sick.webp",
+          "emojis": [
+            "🤢"
+          ]
+        },
+        {
+          "image_file": "016_excited.webp",
+          "emojis": [
+            "🤩"
+          ]
+        },
+        {
+          "image_file": "017_bored.webp",
+          "emojis": [
+            "😑"
+          ]
+        },
+        {
+          "image_file": "018_sad.webp",
+          "emojis": [
+            "😢"
+          ]
+        },
+        {
+          "image_file": "019_wink.webp",
+          "emojis": [
+            "😉"
+          ]
+        },
+        {
+          "image_file": "020_surprised.webp",
+          "emojis": [
+            "😮"
+          ]
+        },
+        {
+          "image_file": "021_dizzy.webp",
+          "emojis": [
+            "😵"
+          ]
+        },
+        {
+          "image_file": "022_celebrate.webp",
+          "emojis": [
+            "🥳"
+          ]
+        }
+      ]
+    }
+  ]
+}

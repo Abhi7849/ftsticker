@@ -1,6 +1,6 @@
 streamlit>=1.35
 pillow>=10.1
 numpy
-opencv-python-headless
+opencv-python-headless>=4.8,<5   # 4.x has Haar face detection; 5.x lacks it (code falls back to a silhouette estimate)
 rembg[cpu]      # best background removal; if missing, OpenCV GrabCut is used
 requests        # only needed for the optional Replicate backend / Telegram upload

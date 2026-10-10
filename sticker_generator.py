@@ -37,6 +37,8 @@ import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 import auto_tester as at
+import face_expressions as fe
+import face_filters as ff
 
 log = logging.getLogger("stickers")
 
@@ -417,11 +419,13 @@ class Spec:
     text_color: str = "#111827"
     emoji: str = "😀"
     border: int = 10
+    filt: str = ""          # Snapchat-style face filter name (face_filters.ALL_FILTERS)
+    expr: str = ""          # facial expression to apply together with the filter
 
     def simplified(self) -> "Spec":
         """Last-resort variant: no effects, just the subject + a label."""
-        return replace(self, styles=(), geo=(), overlays=(), text=self.name.replace("_", " ").upper()[:14],
-                       text_color="#111827")
+        return replace(self, styles=(), geo=(), overlays=(), filt="", expr="",
+                       text=self.name.replace("_", " ").upper()[:14], text_color="#111827")
 
 
 # (name, emoji, expression prompt, styles, geo, overlays)
@@ -507,6 +511,41 @@ COMBOS = [
 ]
 
 
+# Snapchat-style funny face filters
+# (name, emoji, filter, expression, caption, caption colour)
+SNAPS = [
+    ("snap_dog", "🐶", "dog", "happy", "WOOF!", "#b45309"),
+    ("snap_cat", "🐱", "cat", "smug", "Meow", "#6b7280"),
+    ("snap_bunny", "🐰", "bunny", "happy", "Bun Bun", "#ec4899"),
+    ("snap_flower_crown", "🌸", "flower_crown", "love", "Aww", "#db2777"),
+    ("snap_funny_glasses", "🤓", "funny_glasses", "surprised", "Hmm?", "#334155"),
+    ("snap_heart_shades", "😍", "heart_shades", "happy", "Crush", "#e11d48"),
+    ("snap_king", "👑", "king_crown", "cool", "KING", "#ca8a04"),
+    ("snap_party_hat", "🥳", "party_hat", "celebrate", "Party!", "#d946ef"),
+    ("snap_angel_devil", "😇", "angel_devil", "wink", "Naughty", "#dc2626"),
+    ("snap_clown", "🤡", "clown", "happy", "Clown", "#ef4444"),
+    ("snap_pirate", "🏴‍☠️", "pirate", "angry", "Arrr!", "#0f172a"),
+    ("snap_rainbow_barf", "🌈", "rainbow_barf", "sick", "Blegh", "#16a34a"),
+    ("snap_tear_fountain", "⛲", "tear_fountain", "crying", "WAAAH", "#2563eb"),
+    ("snap_hearts", "💕", "hearts_orbit", "love", "In Love", "#e11d48"),
+    ("snap_sparkle", "✨", "sparkle", "excited", "Sparkly", "#a855f7"),
+    ("snap_moustache", "🥸", "moustache", "smug", "Sir", "#78350f"),
+    ("snap_unicorn", "🦄", "unicorn", "happy", "Magic", "#c026d3"),
+    ("snap_alien", "👽", "alien", "neutral", "Take me", "#15803d"),
+    ("snap_big_eyes", "👀", "big_eyes", "surprised", "EYES!", "#0ea5e9"),
+    ("snap_big_head", "🧠", "big_head", "happy", "Big Brain", "#f59e0b"),
+    ("snap_fat_face", "🐡", "fat_face", "happy", "Chonk", "#f97316"),
+    ("snap_pinch", "🤏", "pinch", "scared", "Squish", "#6366f1"),
+    ("snap_long_face", "🐴", "long_face", "sad", "Long Day", "#64748b"),
+    ("snap_tiny_face", "🔬", "tiny_face", "shocked", "Tiny!", "#7c3aed"),
+]
+# filter x style mash-ups: (snap name, style)
+SNAP_COMBOS = [
+    ("snap_dog", "comic"), ("snap_cat", "neon"), ("snap_unicorn", "holographic"), ("snap_alien", "glitch"),
+    ("snap_clown", "pop_art"), ("snap_king", "gold"), ("snap_big_eyes", "anime"), ("snap_bunny", "watercolor"),
+]
+
+
 def build_catalog() -> list[Spec]:
     """Deterministic list of 100+ Spec objects, one per sticker."""
     specs: list[Spec] = []
@@ -529,6 +568,17 @@ def build_catalog() -> list[Spec]:
         base = emo[e]
         specs.append(replace(base, category="Mash-ups", name=f"{e}+{style}",
                              prompt=f"{base.prompt}, {style.replace('_', ' ')} style", styles=base.styles + (style,)))
+    snaps = {}
+    for i, (name, emoji, filt, expr, caption, color) in enumerate(SNAPS):
+        s = Spec(0, "Snap Filters", name, f"the same character with a funny {filt.replace('_', ' ')} face filter",
+                 (), (("tilt", 5 if i % 2 else -5),), (), text=caption, text_color=color, emoji=emoji,
+                 filt=filt, expr=expr)
+        snaps[name] = s
+        specs.append(s)
+    for name, style in SNAP_COMBOS:
+        base = snaps[name]
+        specs.append(replace(base, category="Snap Mash-ups", name=f"{name}+{style}",
+                             prompt=f"{base.prompt}, {style.replace('_', ' ')} style", styles=(style,)))
     return [replace(s, idx=i + 1) for i, s in enumerate(specs)]
 
 
@@ -734,11 +784,65 @@ class StickerFactory:
         self.source, self.threshold, self.ai = source, threshold, ai
         self.subject = prep_subject(extract_subject(source, threshold))
 
-    def _local(self, subject: Image.Image, spec: Spec) -> Image.Image:
+    def _apply_expression(self, subject: Image.Image, spec: Spec, intensity: float = 1.0) -> Image.Image:
+        """Apply a facial expression to the subject if the spec calls for one."""
+        expr_name = self._expression_name(spec)
+        if not expr_name:
+            return subject
+        face = fe.find_face(subject)
+        if face.w <= 0 or face.h <= 0:
+            return subject
+        return fe.apply_expression(subject, face, expr_name, intensity)
+
+    def _expression_name(self, spec: Spec) -> str | None:
+        """Extract the expression name from a spec, or None if not an emotion sticker."""
+        if spec.expr and spec.expr in fe.EXPR:          # snap filters carry their own expression
+            return spec.expr
+        if spec.filt:
+            return None
+        # Direct emotion match
+        if spec.name in fe.EXPR:
+            return spec.name
+        # Mash-up: "happy+neon" -> "happy"
+        base = spec.name.split("+")[0]
+        if base in fe.EXPR:
+            return base
+        return None
+
+    def _local(self, subject: Image.Image, spec: Spec, intensity: float = 1.0) -> Image.Image:
         img = subject
+        # Apply facial expression first (before styling, so styles affect the new features too)
+        expr_name = self._expression_name(spec)
+        if expr_name:
+            face = fe.find_face(subject)
+            if face.w > 0 and face.h > 0:
+                img = fe.apply_expression(subject, face, expr_name, intensity)
+                # Verify the face actually changed; if not, try with higher intensity
+                change = fe.face_change_score(subject, img, face)
+                if change < fe.MIN_FACE_CHANGE and intensity < 2.0:
+                    img = fe.apply_expression(subject, face, expr_name, intensity * 1.5)
+                    change = fe.face_change_score(subject, img, face)
+                if change < fe.MIN_FACE_CHANGE:
+                    raise fe.NoFaceChange(
+                        f"expression '{expr_name}' did not visibly change the face "
+                        f"(score={change:.1f}, need {fe.MIN_FACE_CHANGE})"
+                    )
         for style in spec.styles:
             img = apply_style(img, style)
+        if spec.filt:
+            img = self._apply_filter(img, subject, spec)
         return compose(apply_geo(img, spec.geo), spec)
+
+    def _apply_filter(self, img: Image.Image, subject: Image.Image, spec: Spec) -> Image.Image:
+        """Snapchat-style filter anchored to the face; verifies it visibly changed the sticker."""
+        face = fe.find_face(subject)
+        if face.w <= 0 or face.h <= 0:
+            raise fe.NoFaceChange("no face area for filter")
+        out = ff.apply_filter(img, face, spec.filt)
+        score = ff.filter_change_score(img, out)
+        if score < ff.MIN_FILTER_CHANGE:
+            raise fe.NoFaceChange(f"filter '{spec.filt}' did not visibly change the sticker (score={score:.4f})")
+        return out
 
     def _ai(self, spec: Spec) -> Image.Image:
         flat = Image.new("RGB", self.subject.size, (255, 255, 255))
@@ -756,14 +860,16 @@ class StickerFactory:
             subject = prep_subject(extract_subject(self.source, thr, method))
         if attempt == LAST_RESORT:
             spec = spec.simplified()
-        if self.ai and attempt < 2:
+        # Escalate expression intensity on retries
+        intensity = 1.0 + 0.3 * attempt
+        if self.ai and attempt < 2 and not spec.filt:      # filters are drawn locally on the face
             try:
                 return encode_webp(self._ai(spec))
             except at.RateLimitError:
                 raise                                       # let heal_index back off
             except Exception as exc:                        # AI down -> local fallback right away
                 log.warning("[#%03d] AI backend failed (%s); using local pipeline", spec.idx, exc)
-        return encode_webp(self._local(subject, spec))
+        return encode_webp(self._local(subject, spec, intensity))
 
 
 @dataclass
@@ -790,7 +896,8 @@ def setup_logging(out_dir: Path) -> None:
 
 def generate_pack(image: Image.Image, out_dir, count: Optional[int] = None, use_ai: bool = False,
                   threshold: int = 128, progress: Optional[Callable[[int, int, str], None]] = None,
-                  backend: Optional[ReplicateBackend] = None) -> list[StickerResult]:
+                  backend: Optional[ReplicateBackend] = None,
+                  categories: Optional[set] = None) -> list[StickerResult]:
     """
     Generate the whole pack. Failed indices are re-run (with escalating fixes)
     for up to MAX_PASSES passes. Writes stickers/*.webp + manifest.json to out_dir.
@@ -800,7 +907,7 @@ def generate_pack(image: Image.Image, out_dir, count: Optional[int] = None, use_
     sticker_dir.mkdir(parents=True, exist_ok=True)
     setup_logging(out)
 
-    specs = build_catalog()[: count or None]
+    specs = [s for s in build_catalog() if not categories or s.category in categories][: count or None]
     ai = None
     if use_ai:
         try:

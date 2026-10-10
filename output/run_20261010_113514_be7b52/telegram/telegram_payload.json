@@ -1,0 +1,165 @@
+{
+  "sticker_format": "static",
+  "sets": [
+    {
+      "short_name": "my_stickers_1",
+      "title": "My Stickers",
+      "stickers": [
+        {
+          "file": "stickers/001_happy.webp",
+          "emoji_list": [
+            "😀"
+          ],
+          "name": "happy"
+        },
+        {
+          "file": "stickers/002_angry.webp",
+          "emoji_list": [
+            "😡"
+          ],
+          "name": "angry"
+        },
+        {
+          "file": "stickers/003_crying.webp",
+          "emoji_list": [
+            "😭"
+          ],
+          "name": "crying"
+        },
+        {
+          "file": "stickers/004_mind_blown.webp",
+          "emoji_list": [
+            "🤯"
+          ],
+          "name": "mind_blown"
+        },
+        {
+          "file": "stickers/005_facepalm.webp",
+          "emoji_list": [
+            "🤦"
+          ],
+          "name": "facepalm"
+        },
+        {
+          "file": "stickers/006_laughing.webp",
+          "emoji_list": [
+            "😂"
+          ],
+          "name": "laughing"
+        },
+        {
+          "file": "stickers/007_shocked.webp",
+          "emoji_list": [
+            "😱"
+          ],
+          "name": "shocked"
+        },
+        {
+          "file": "stickers/008_thinking.webp",
+          "emoji_list": [
+            "🤔"
+          ],
+          "name": "thinking"
+        },
+        {
+          "file": "stickers/009_sleeping.webp",
+          "emoji_list": [
+            "😴"
+          ],
+          "name": "sleeping"
+        },
+        {
+          "file": "stickers/010_confused.webp",
+          "emoji_list": [
+            "😕"
+          ],
+          "name": "confused"
+        },
+        {
+          "file": "stickers/011_love.webp",
+          "emoji_list": [
+            "😍"
+          ],
+          "name": "love"
+        },
+        {
+          "file": "stickers/012_cool.webp",
+          "emoji_list": [
+            "😎"
+          ],
+          "name": "cool"
+        },
+        {
+          "file": "stickers/013_embarrassed.webp",
+          "emoji_list": [
+            "😳"
+          ],
+          "name": "embarrassed"
+        },
+        {
+          "file": "stickers/014_scared.webp",
+          "emoji_list": [
+            "😨"
+          ],
+          "name": "scared"
+        },
+        {
+          "file": "stickers/015_sick.webp",
+          "emoji_list": [
+            "🤢"
+          ],
+          "name": "sick"
+        },
+        {
+          "file": "stickers/016_excited.webp",
+          "emoji_list": [
+            "🤩"
+          ],
+          "name": "excited"
+        },
+        {
+          "file": "stickers/017_bored.webp",
+          "emoji_list": [
+            "😑"
+          ],
+          "name": "bored"
+        },
+        {
+          "file": "stickers/018_sad.webp",
+          "emoji_list": [
+            "😢"
+          ],
+          "name": "sad"
+        },
+        {
+          "file": "stickers/019_wink.webp",
+          "emoji_list": [
+            "😉"
+          ],
+          "name": "wink"
+        },
+        {
+          "file": "stickers/020_surprised.webp",
+          "emoji_list": [
+            "😮"
+          ],
+          "name": "surprised"
+        },
+        {
+          "file": "stickers/021_dizzy.webp",
+          "emoji_list": [
+            "😵"
+          ],
+          "name": "dizzy"
+        },
+        {
+          "file": "stickers/022_celebrate.webp",
+          "emoji_list": [
+            "🥳"
+          ],
+          "name": "celebrate"
+        }
+      ]
+    }
+  ]
+}

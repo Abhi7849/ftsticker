@@ -234,9 +234,25 @@ def run_selftest() -> bool:
         check("all 8 stickers generated", len(results) == 8 and all(r.ok for r in results))
         check("all files re-validate from disk",
               all(validate_bytes(open(r.path, "rb").read()) == [] for r in results if r.ok))
-        for h in list(sg.log.handlers):
-            h.close()
-            sg.log.removeHandler(h)
+        # Close logging handlers so Windows can delete the temp directory
+        for handler in log.handlers[:]:
+            handler.close()
+            log.removeHandler(handler)
+    print("Snapchat-style filters (every filter, local mode)")
+    import face_filters as ff
+    with tempfile.TemporaryDirectory() as tmp:
+        results = sg.generate_pack(_synthetic_photo(), tmp, use_ai=False, categories={"Snap Filters", "Snap Mash-ups"})
+        n_snap = len([s for s in sg.build_catalog() if s.category in ("Snap Filters", "Snap Mash-ups")])
+        check(f"all {n_snap} snap stickers generated", len(results) == n_snap and all(r.ok for r in results))
+        check("snap stickers re-validate from disk",
+              all(validate_bytes(open(r.path, "rb").read()) == [] for r in results if r.ok))
+        check("every filter used in catalog exists",
+              {s.filt for s in sg.build_catalog() if s.filt} <= set(ff.ALL_FILTERS))
+        check("no two snap stickers are identical",
+              len({open(r.path, "rb").read() for r in results if r.ok}) == len([r for r in results if r.ok]))
+        for handler in log.handlers[:]:
+            handler.close()
+            log.removeHandler(handler)
     cat = sg.build_catalog()
     check("catalog has 100+ unique entries", len(cat) >= 100 and len({(s.category, s.name) for s in cat}) == len(cat))
     print("\nSELF-TEST", "PASSED" if not failures else f"FAILED ({failures})")

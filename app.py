@@ -16,13 +16,19 @@ import sticker_generator as sg
 
 st.set_page_config(page_title="Sticker Pack Studio", page_icon="🎟️", layout="wide")
 st.title("🎟️ Sticker Pack Studio")
-st.caption("One image in, 100+ stickers out. Self-testing pipeline, WhatsApp / Telegram / iMessage exports.")
+st.caption("One image in, 130+ stickers out - now with Snapchat-style funny face filters. Self-testing pipeline, WhatsApp / Telegram / iMessage exports.")
 
-catalog_size = len(sg.build_catalog())
+catalog = sg.build_catalog()
+catalog_size = len(catalog)
+all_categories = list(dict.fromkeys(s.category for s in catalog))
 
 with st.sidebar:
     st.header("Settings")
-    count = st.slider("Stickers to generate", 10, catalog_size, catalog_size)
+    chosen = st.multiselect("Categories", all_categories, default=all_categories,
+                            help="'Snap Filters' / 'Snap Mash-ups' = Snapchat-style funny face filters "
+                                 "(dog ears, flower crown, big eyes, rainbow barf ...).")
+    pool = len([s for s in catalog if s.category in chosen]) if chosen else catalog_size
+    count = st.slider("Stickers to generate", 1, max(2, pool), max(2, pool))
     threshold = st.slider("Background-removal threshold", 40, 220, 128,
                           help="Lower keeps more of the subject; higher trims halo. "
                                "The self-healing loop also retries with 100 / 160 automatically.")
@@ -46,7 +52,8 @@ if upload:
 
         try:
             results = sg.generate_pack(src, run_dir, count=count, use_ai=use_ai,
-                                       threshold=threshold, progress=on_progress)
+                                       threshold=threshold, progress=on_progress,
+                                       categories=set(chosen) or None)
             bundles = exporter.export_all(run_dir, title, author)
             st.session_state["run"] = {"dir": str(run_dir), "results": results, "bundles": bundles}
         except Exception as exc:   # last-line defence: show, don't crash
