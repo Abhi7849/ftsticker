@@ -234,6 +234,9 @@ def run_selftest() -> bool:
         check("all 8 stickers generated", len(results) == 8 and all(r.ok for r in results))
         check("all files re-validate from disk",
               all(validate_bytes(open(r.path, "rb").read()) == [] for r in results if r.ok))
+        for h in list(sg.log.handlers):
+            h.close()
+            sg.log.removeHandler(h)
     cat = sg.build_catalog()
     check("catalog has 100+ unique entries", len(cat) >= 100 and len({(s.category, s.name) for s in cat}) == len(cat))
     print("\nSELF-TEST", "PASSED" if not failures else f"FAILED ({failures})")
