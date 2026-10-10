@@ -1,0 +1,6 @@
+streamlit>=1.35
+pillow>=10.1
+numpy
+opencv-python-headless
+rembg[cpu]      # best background removal; if missing, OpenCV GrabCut is used
+requests        # only needed for the optional Replicate backend / Telegram upload
